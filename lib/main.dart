@@ -6,7 +6,7 @@ import 'firebase_options.dart';
 // Core imports
 import 'core/themes/app_theme.dart';
 import 'view_models/auth_view_model.dart';
-// Update this import to point to the new location
+import 'view_models/profile_view_model.dart';
 import 'views/screens/auth/login_view.dart';
 
 void main() async {
@@ -22,12 +22,16 @@ class ZenThinkApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => AuthViewModel())],
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthViewModel()),
+
+        // This makes ProfileViewModel available to the entire app
+        ChangeNotifierProvider(create: (_) => ProfileViewModel()),
+      ],
       child: MaterialApp(
         title: 'ZenThink Health',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
-        // Point to the separated LoginView
         home: const LoginView(),
       ),
     );
