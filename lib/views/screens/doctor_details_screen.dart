@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/themes/app_colors.dart';
 import '../../data/models/doctor_model.dart';
+import 'booking_screen.dart';
 
 class DoctorDetailsScreen extends StatelessWidget {
   final DoctorModel doctor;
@@ -187,9 +188,11 @@ class DoctorDetailsScreen extends StatelessWidget {
         ),
         child: ElevatedButton(
           onPressed: () {
-            // TODO: Navigate to Booking Screen
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Booking feature coming soon!")),
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => BookingScreen(doctor: doctor),
+              ),
             );
           },
           style: ElevatedButton.styleFrom(
