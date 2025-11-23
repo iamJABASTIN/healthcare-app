@@ -130,6 +130,27 @@ class AuthViewModel extends ChangeNotifier {
     return "Login failed";
   }
 
+  // --- Initialize from existing Firebase auth session ---
+  /// Call this on app start to populate the view model from a cached Firebase user
+  Future<void> loadCurrentUser() async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    _setLoading(true);
+    try {
+      final doc = await _firestore.collection('users').doc(user.uid).get();
+      if (doc.exists) {
+        final data = doc.data() as Map<String, dynamic>;
+        _userRole = data['role'] as String?;
+        _isVerified = data['isVerified'] ?? false;
+      }
+    } catch (e) {
+      // ignore - keep defaults
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   // --- SIGN OUT ---
   Future<void> signOut() async {
     await _auth.signOut();
