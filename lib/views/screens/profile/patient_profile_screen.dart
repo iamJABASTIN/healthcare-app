@@ -3,8 +3,6 @@ import 'package:provider/provider.dart';
 import '../../../core/themes/app_colors.dart';
 import '../../../view_models/patient_profile_view_model.dart';
 import '../../../view_models/auth_view_model.dart';
-import '../../../data/models/patient_profile_model.dart';
-import '../../widgets/profile_field_tile.dart';
 import '../auth/login_view.dart';
 
 class PatientProfileScreen extends StatefulWidget {
@@ -18,7 +16,7 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
   @override
   void initState() {
     super.initState();
-    // Fetch data on load
+    // Load profile data
     Future.microtask(
       () => Provider.of<ProfileViewModel>(
         context,
@@ -29,529 +27,374 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final profileVM = Provider.of<ProfileViewModel>(context);
-    final profile = profileVM.patientProfile;
-    final percentage = profile?.completionPercentage ?? 0;
+    return Consumer<ProfileViewModel>(
+      builder: (context, profileVM, _) {
+        final profile = profileVM.patientProfile;
+        final percentage = profile?.completionPercentage ?? 0;
 
-    return DefaultTabController(
-      length: 3, // Personal, Medical, Lifestyle
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(profileVM.userData?['name'] ?? "User"), // "Jabastin"
-          centerTitle: false,
-          elevation: 0,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.logout, color: Colors.white),
-              onPressed: () {
-                // Logout Logic
-                final authVM = Provider.of<AuthViewModel>(
-                  context,
-                  listen: false,
-                );
-                authVM.signOut();
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (_) => const LoginView()),
-                  (route) => false,
-                );
-              },
-            ),
-          ],
-          bottom: const TabBar(
-            indicatorColor: Colors.white,
-            indicatorWeight: 3,
-            labelColor: Colors.white, // Explicitly set selected color
-            labelStyle: TextStyle(fontWeight: FontWeight.bold),
-            unselectedLabelColor: Colors.white70,
-            tabs: [
-              Tab(text: "Personal"),
-              Tab(text: "Medical"),
-              Tab(text: "Lifestyle"),
-            ],
-          ),
-        ),
-        body: Column(
-          children: [
-            // --- Expanded Tab View ---
-            Expanded(
-              child: TabBarView(
-                children: [
-                  // 1. Personal Tab
-                  _buildPersonalTab(
-                    context,
-                    profile,
-                    profileVM.userData?['name'],
-                    profileVM.userData?['email'],
-                    profileVM,
-                  ),
-
-                  // 2. Medical Tab
-                  _buildMedicalTab(context, profile, profileVM),
-
-                  // 3. Lifestyle Tab
-                  _buildLifestyleTab(context, profile, profileVM),
+        return DefaultTabController(
+          length: 3,
+          child: Scaffold(
+            appBar: AppBar(
+              title: Text(profileVM.userData?['name'] ?? 'User'),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.logout, color: Colors.white),
+                  onPressed: () {
+                    Provider.of<AuthViewModel>(
+                      context,
+                      listen: false,
+                    ).signOut();
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LoginView()),
+                      (route) => false,
+                    );
+                  },
+                ),
+              ],
+              bottom: const TabBar(
+                indicatorColor: Colors.white,
+                indicatorWeight: 3,
+                labelColor: Colors.white,
+                labelStyle: TextStyle(fontWeight: FontWeight.bold),
+                unselectedLabelColor: Colors.white70,
+                tabs: [
+                  Tab(text: 'Personal'),
+                  Tab(text: 'Medical'),
+                  Tab(text: 'Lifestyle'),
                 ],
               ),
             ),
-
-            // --- Bottom Completion Bar ---
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.2),
-                    blurRadius: 5,
-                    offset: const Offset(0, -3),
-                  ),
-                ],
-              ),
-              child: ElevatedButton(
-                onPressed: () {
-                  // Action to complete or save
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Profile Saved Successfully")),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryBlue,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                child: Column(
-                  children: [
-                    const Text(
-                      "Complete profile",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      "$percentage% completed",
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.white70,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // --- Tab Builders ---
-
-  Widget _buildPersonalTab(
-    BuildContext context,
-    PatientProfileModel? profile,
-    String? name,
-    String? email,
-    ProfileViewModel profileVM,
-  ) {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          // Photo Section (Custom layout for the top part)
-          Container(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            body: Column(
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Name",
-                      style: TextStyle(
-                        color: AppColors.textLight,
-                        fontSize: 12,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      name ?? "User",
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: AppColors.lightGrey,
-                    borderRadius: BorderRadius.circular(30),
+                Expanded(
+                  child: TabBarView(
+                    children: [
+                      _buildPersonalTab(context, profileVM),
+                      _buildMedicalTab(context, profileVM),
+                      _buildLifestyleTab(context, profileVM),
+                    ],
                   ),
-                  alignment: Alignment.center,
-                  child: const Text(
-                    "add\nphoto",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: AppColors.primaryBlue,
+                ),
+                // Save button with completion percentage
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  color: Colors.white,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      // Trigger save functionality here if needed in VM
+                      // profileVM.saveProfile();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Profile Saved Successfully'),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryBlue,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    child: Column(
+                      children: [
+                        const Text(
+                          'Complete profile',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '$percentage% completed',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.white70,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ],
             ),
           ),
-          const Divider(height: 1),
-
-          // Fields
-          ProfileFieldTile(
-            label: "Contact Number",
-            value: profile?.contactNumber ?? "+91-7904686738",
-            placeholder: "add number",
-            onTap: () => _showEditDialog(
-              context,
-              "Contact Number",
-              "contactNumber",
-              profile?.contactNumber,
-              profileVM,
-            ),
-          ),
-          ProfileFieldTile(
-            label: "Email Id",
-            value: email,
-            placeholder: "add email",
-            onTap: () {
-              // Email usually not editable here or needs specific flow
-            },
-          ),
-          ProfileFieldTile(
-            label: "Gender",
-            value: profile?.gender,
-            placeholder: "Add gender",
-            onTap: () => _showEditDialog(
-              context,
-              "Gender",
-              "gender",
-              profile?.gender,
-              profileVM,
-            ),
-          ),
-          ProfileFieldTile(
-            label: "Date of Birth",
-            value: profile?.dob,
-            placeholder: "yyyy mm dd",
-            onTap: () => _selectDate(context, "dob", profile?.dob, profileVM),
-          ),
-          ProfileFieldTile(
-            label: "Blood Group",
-            value: profile?.bloodGroup,
-            placeholder: "add blood group",
-            onTap: () => _showEditDialog(
-              context,
-              "Blood Group",
-              "bloodGroup",
-              profile?.bloodGroup,
-              profileVM,
-            ),
-          ),
-          ProfileFieldTile(
-            label: "Marital Status",
-            value: profile?.maritalStatus,
-            placeholder: "add marital status",
-            onTap: () => _showEditDialog(
-              context,
-              "Marital Status",
-              "maritalStatus",
-              profile?.maritalStatus,
-              profileVM,
-            ),
-          ),
-          ProfileFieldTile(
-            label: "Height",
-            value: profile?.height,
-            placeholder: "add height",
-            onTap: () => _showEditDialog(
-              context,
-              "Height",
-              "height",
-              profile?.height,
-              profileVM,
-            ),
-          ),
-          ProfileFieldTile(
-            label: "Weight",
-            value: profile?.weight,
-            placeholder: "add weight",
-            onTap: () => _showEditDialog(
-              context,
-              "Weight",
-              "weight",
-              profile?.weight,
-              profileVM,
-            ),
-          ),
-          ProfileFieldTile(
-            label: "Emergency Contact",
-            value: profile?.emergencyContact,
-            placeholder: "add emergency details",
-            onTap: () => _showEditDialog(
-              context,
-              "Emergency Contact",
-              "emergencyContact",
-              profile?.emergencyContact,
-              profileVM,
-            ),
-          ),
-          ProfileFieldTile(
-            label: "Location",
-            value: profile?.location,
-            placeholder: "add details",
-            onTap: () => _showEditDialog(
-              context,
-              "Location",
-              "location",
-              profile?.location,
-              profileVM,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMedicalTab(
-    BuildContext context,
-    PatientProfileModel? profile,
-    ProfileViewModel profileVM,
-  ) {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          ProfileFieldTile(
-            label: "Allergies",
-            value: profile?.allergies,
-            placeholder: "add allergies",
-            onTap: () => _showEditDialog(
-              context,
-              "Allergies",
-              "allergies",
-              profile?.allergies,
-              profileVM,
-            ),
-          ),
-          ProfileFieldTile(
-            label: "Current Medications",
-            value: profile?.currentMedications,
-            placeholder: "add medications",
-            onTap: () => _showEditDialog(
-              context,
-              "Current Medications",
-              "currentMedications",
-              profile?.currentMedications,
-              profileVM,
-            ),
-          ),
-          ProfileFieldTile(
-            label: "Past Medications",
-            value: profile?.pastMedications,
-            placeholder: "add medications",
-            onTap: () => _showEditDialog(
-              context,
-              "Past Medications",
-              "pastMedications",
-              profile?.pastMedications,
-              profileVM,
-            ),
-          ),
-          ProfileFieldTile(
-            label: "Chronic Diseases",
-            value: profile?.chronicDiseases,
-            placeholder: "add disease",
-            onTap: () => _showEditDialog(
-              context,
-              "Chronic Diseases",
-              "chronicDiseases",
-              profile?.chronicDiseases,
-              profileVM,
-            ),
-          ),
-          ProfileFieldTile(
-            label: "Injuries",
-            value: profile?.injuries,
-            placeholder: "add incident",
-            onTap: () => _showEditDialog(
-              context,
-              "Injuries",
-              "injuries",
-              profile?.injuries,
-              profileVM,
-            ),
-          ),
-          ProfileFieldTile(
-            label: "Surgeries",
-            value: profile?.surgeries,
-            placeholder: "add surgeries",
-            onTap: () => _showEditDialog(
-              context,
-              "Surgeries",
-              "surgeries",
-              profile?.surgeries,
-              profileVM,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLifestyleTab(
-    BuildContext context,
-    PatientProfileModel? profile,
-    ProfileViewModel profileVM,
-  ) {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          ProfileFieldTile(
-            label: "Smoking Habits",
-            value: profile?.smokingHabits,
-            placeholder: "add details",
-            onTap: () => _showEditDialog(
-              context,
-              "Smoking Habits",
-              "smokingHabits",
-              profile?.smokingHabits,
-              profileVM,
-            ),
-          ),
-          ProfileFieldTile(
-            label: "Alcohol consumption",
-            value: profile?.alcoholConsumption,
-            placeholder: "add details",
-            onTap: () => _showEditDialog(
-              context,
-              "Alcohol Consumption",
-              "alcoholConsumption",
-              profile?.alcoholConsumption,
-              profileVM,
-            ),
-          ),
-          ProfileFieldTile(
-            label: "Activity level",
-            value: profile?.activityLevel,
-            placeholder: "add details",
-            onTap: () => _showEditDialog(
-              context,
-              "Activity Level",
-              "activityLevel",
-              profile?.activityLevel,
-              profileVM,
-            ),
-          ),
-          ProfileFieldTile(
-            label: "Food Preference",
-            value: profile?.foodPreference,
-            placeholder: "add lifestyle",
-            onTap: () => _showEditDialog(
-              context,
-              "Food Preference",
-              "foodPreference",
-              profile?.foodPreference,
-              profileVM,
-            ),
-          ),
-          ProfileFieldTile(
-            label: "Occupation",
-            value: profile?.occupation,
-            placeholder: "add occupation",
-            onTap: () => _showEditDialog(
-              context,
-              "Occupation",
-              "occupation",
-              profile?.occupation,
-              profileVM,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // --- Helpers ---
-
-  Future<void> _showEditDialog(
-    BuildContext context,
-    String label,
-    String fieldKey,
-    String? currentValue,
-    ProfileViewModel profileVM,
-  ) async {
-    final TextEditingController controller = TextEditingController(
-      text: currentValue,
-    );
-
-    await showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text("Edit $label"),
-          content: TextField(
-            controller: controller,
-            decoration: InputDecoration(
-              hintText: "Enter $label",
-              border: const OutlineInputBorder(),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel"),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                profileVM.updateProfileField(fieldKey, controller.text);
-                Navigator.pop(context);
-              },
-              child: const Text("Save"),
-            ),
-          ],
         );
       },
     );
   }
 
-  Future<void> _selectDate(
-    BuildContext context,
-    String fieldKey,
-    String? currentDate,
-    ProfileViewModel profileVM,
-  ) async {
-    DateTime initialDate = DateTime.now();
-    if (currentDate != null && currentDate.isNotEmpty) {
-      try {
-        initialDate = DateTime.parse(currentDate);
-      } catch (_) {}
-    }
+  // ---------- Tab Builders ----------
+  Widget _buildPersonalTab(BuildContext context, ProfileViewModel vm) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          // Profile picture section
+          Stack(
+            alignment: Alignment.bottomRight,
+            children: [
+              CircleAvatar(
+                radius: 50,
+                backgroundColor: AppColors.lightGrey,
+                backgroundImage:
+                    vm.profileImageUrl != null && vm.profileImageUrl!.isNotEmpty
+                    ? NetworkImage(vm.profileImageUrl!)
+                    : null,
+                child: vm.profileImageUrl == null || vm.profileImageUrl!.isEmpty
+                    ? const Icon(
+                        Icons.person,
+                        size: 50,
+                        color: AppColors.textDark,
+                      )
+                    : null,
+              ),
+              Positioned(
+                bottom: 0,
+                right: 4,
+                child: IconButton(
+                  icon: const Icon(Icons.edit, color: AppColors.primaryBlue),
+                  // This calls the VM function. Ensure logic is updated in VM for Cloudinary.
+                  onPressed: () => vm.uploadProfileImage(),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
 
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: initialDate,
-      firstDate: DateTime(1900),
-      lastDate: DateTime.now(),
+          // Name Field (Fixed: Now Editable)
+          TextFormField(
+            initialValue: vm.userData?['name'] ?? '',
+            decoration: const InputDecoration(
+              labelText: 'Name',
+              border: OutlineInputBorder(),
+            ),
+            // CHANGED: Removed readOnly: true and added onChanged
+            onChanged: (value) => vm.updateProfileField('name', value),
+          ),
+
+          const SizedBox(height: 16),
+          // Email (Keep read-only as email usually shouldn't change)
+          TextFormField(
+            initialValue: vm.userData?['email'] ?? '',
+            decoration: const InputDecoration(
+              labelText: 'Email',
+              border: OutlineInputBorder(),
+            ),
+            readOnly: true,
+          ),
+          const SizedBox(height: 16),
+          // Contact Number
+          _buildTextField(
+            label: 'Contact Number',
+            controller: vm.contactNumberController,
+            placeholder: 'Add number',
+            fieldKey: 'contactNumber',
+            vm: vm,
+          ),
+          const SizedBox(height: 16),
+          // Gender
+          _buildTextField(
+            label: 'Gender',
+            controller: vm.genderController,
+            placeholder: 'Add gender',
+            fieldKey: 'gender',
+            vm: vm,
+          ),
+          const SizedBox(height: 16),
+          // Date of Birth
+          _buildTextField(
+            label: 'Date of Birth',
+            controller: vm.dobController,
+            placeholder: 'yyyy-mm-dd',
+            fieldKey: 'dob',
+            vm: vm,
+          ),
+          const SizedBox(height: 16),
+          // Blood Group
+          _buildTextField(
+            label: 'Blood Group',
+            controller: vm.bloodGroupController,
+            placeholder: 'Add blood group',
+            fieldKey: 'bloodGroup',
+            vm: vm,
+          ),
+          const SizedBox(height: 16),
+          // Marital Status
+          _buildTextField(
+            label: 'Marital Status',
+            controller: vm.maritalStatusController,
+            placeholder: 'Add marital status',
+            fieldKey: 'maritalStatus',
+            vm: vm,
+          ),
+          const SizedBox(height: 16),
+          // Height
+          _buildTextField(
+            label: 'Height',
+            controller: vm.heightController,
+            placeholder: 'Add height',
+            fieldKey: 'height',
+            vm: vm,
+          ),
+          const SizedBox(height: 16),
+          // Weight
+          _buildTextField(
+            label: 'Weight',
+            controller: vm.weightController,
+            placeholder: 'Add weight',
+            fieldKey: 'weight',
+            vm: vm,
+          ),
+          const SizedBox(height: 16),
+          // Emergency Contact
+          _buildTextField(
+            label: 'Emergency Contact',
+            controller: vm.emergencyContactController,
+            placeholder: 'Add emergency details',
+            fieldKey: 'emergencyContact',
+            vm: vm,
+          ),
+          const SizedBox(height: 16),
+          // Location
+          _buildTextField(
+            label: 'Location',
+            controller: vm.locationController,
+            placeholder: 'Add details',
+            fieldKey: 'location',
+            vm: vm,
+          ),
+        ],
+      ),
     );
+  }
 
-    if (picked != null) {
-      // Format as yyyy-MM-dd
-      String formattedDate =
-          "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
-      profileVM.updateProfileField(fieldKey, formattedDate);
-    }
+  Widget _buildMedicalTab(BuildContext context, ProfileViewModel vm) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          _buildTextField(
+            label: 'Allergies',
+            controller: vm.allergiesController,
+            placeholder: 'Add allergies',
+            fieldKey: 'allergies',
+            vm: vm,
+          ),
+          const SizedBox(height: 16),
+          _buildTextField(
+            label: 'Current Medications',
+            controller: vm.currentMedicationsController,
+            placeholder: 'Add medications',
+            fieldKey: 'currentMedications',
+            vm: vm,
+          ),
+          const SizedBox(height: 16),
+          _buildTextField(
+            label: 'Past Medications',
+            controller: vm.pastMedicationsController,
+            placeholder: 'Add medications',
+            fieldKey: 'pastMedications',
+            vm: vm,
+          ),
+          const SizedBox(height: 16),
+          _buildTextField(
+            label: 'Chronic Diseases',
+            controller: vm.chronicDiseasesController,
+            placeholder: 'Add disease',
+            fieldKey: 'chronicDiseases',
+            vm: vm,
+          ),
+          const SizedBox(height: 16),
+          _buildTextField(
+            label: 'Injuries',
+            controller: vm.injuriesController,
+            placeholder: 'Add incident',
+            fieldKey: 'injuries',
+            vm: vm,
+          ),
+          const SizedBox(height: 16),
+          _buildTextField(
+            label: 'Surgeries',
+            controller: vm.surgeriesController,
+            placeholder: 'Add surgeries',
+            fieldKey: 'surgeries',
+            vm: vm,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLifestyleTab(BuildContext context, ProfileViewModel vm) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          _buildTextField(
+            label: 'Smoking Habits',
+            controller: vm.smokingHabitsController,
+            placeholder: 'Add details',
+            fieldKey: 'smokingHabits',
+            vm: vm,
+          ),
+          const SizedBox(height: 16),
+          _buildTextField(
+            label: 'Alcohol Consumption',
+            controller: vm.alcoholConsumptionController,
+            placeholder: 'Add details',
+            fieldKey: 'alcoholConsumption',
+            vm: vm,
+          ),
+          const SizedBox(height: 16),
+          _buildTextField(
+            label: 'Activity Level',
+            controller: vm.activityLevelController,
+            placeholder: 'Add details',
+            fieldKey: 'activityLevel',
+            vm: vm,
+          ),
+          const SizedBox(height: 16),
+          _buildTextField(
+            label: 'Food Preference',
+            controller: vm.foodPreferenceController,
+            placeholder: 'Add lifestyle',
+            fieldKey: 'foodPreference',
+            vm: vm,
+          ),
+          const SizedBox(height: 16),
+          _buildTextField(
+            label: 'Occupation',
+            controller: vm.occupationController,
+            placeholder: 'Add occupation',
+            fieldKey: 'occupation',
+            vm: vm,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Helper to build a styled TextFormField bound to a controller
+  Widget _buildTextField({
+    required String label,
+    required TextEditingController controller,
+    required String placeholder,
+    required String fieldKey,
+    required ProfileViewModel vm,
+  }) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: placeholder,
+        border: const OutlineInputBorder(),
+      ),
+      onChanged: (value) => vm.updateProfileField(fieldKey, value),
+    );
   }
 }

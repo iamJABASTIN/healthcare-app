@@ -25,6 +25,9 @@ class PatientProfileModel {
   String? foodPreference;
   String? occupation;
 
+  // Profile image URL
+  String? profileImageUrl;
+
   PatientProfileModel({
     this.contactNumber,
     this.gender,
@@ -46,6 +49,7 @@ class PatientProfileModel {
     this.activityLevel,
     this.foodPreference,
     this.occupation,
+    this.profileImageUrl,
   });
 
   // Convert to Map for Firestore
@@ -71,6 +75,7 @@ class PatientProfileModel {
       'activityLevel': activityLevel,
       'foodPreference': foodPreference,
       'occupation': occupation,
+      'profileImageUrl': profileImageUrl,
     };
   }
 
@@ -97,14 +102,63 @@ class PatientProfileModel {
       activityLevel: map['activityLevel'],
       foodPreference: map['foodPreference'],
       occupation: map['occupation'],
+      profileImageUrl: map['profileImageUrl'],
+    );
+  }
+
+  // CopyWith for immutability updates
+  PatientProfileModel copyWith({
+    String? contactNumber,
+    String? gender,
+    String? dob,
+    String? bloodGroup,
+    String? maritalStatus,
+    String? height,
+    String? weight,
+    String? emergencyContact,
+    String? location,
+    String? allergies,
+    String? currentMedications,
+    String? pastMedications,
+    String? chronicDiseases,
+    String? injuries,
+    String? surgeries,
+    String? smokingHabits,
+    String? alcoholConsumption,
+    String? activityLevel,
+    String? foodPreference,
+    String? occupation,
+    String? profileImageUrl,
+  }) {
+    return PatientProfileModel(
+      contactNumber: contactNumber ?? this.contactNumber,
+      gender: gender ?? this.gender,
+      dob: dob ?? this.dob,
+      bloodGroup: bloodGroup ?? this.bloodGroup,
+      maritalStatus: maritalStatus ?? this.maritalStatus,
+      height: height ?? this.height,
+      weight: weight ?? this.weight,
+      emergencyContact: emergencyContact ?? this.emergencyContact,
+      location: location ?? this.location,
+      allergies: allergies ?? this.allergies,
+      currentMedications: currentMedications ?? this.currentMedications,
+      pastMedications: pastMedications ?? this.pastMedications,
+      chronicDiseases: chronicDiseases ?? this.chronicDiseases,
+      injuries: injuries ?? this.injuries,
+      surgeries: surgeries ?? this.surgeries,
+      smokingHabits: smokingHabits ?? this.smokingHabits,
+      alcoholConsumption: alcoholConsumption ?? this.alcoholConsumption,
+      activityLevel: activityLevel ?? this.activityLevel,
+      foodPreference: foodPreference ?? this.foodPreference,
+      occupation: occupation ?? this.occupation,
+      profileImageUrl: profileImageUrl ?? this.profileImageUrl,
     );
   }
 
   // Helper to calculate percentage
   int get completionPercentage {
-    int total = 20; // Total number of fields
+    int total = 21; // Updated total fields count including profileImageUrl
     int filled = 0;
-    // Check every field manually or use a list to loop
     if (contactNumber != null) filled++;
     if (gender != null) filled++;
     if (dob != null) filled++;
@@ -125,7 +179,7 @@ class PatientProfileModel {
     if (activityLevel != null) filled++;
     if (foodPreference != null) filled++;
     if (occupation != null) filled++;
-
+    if (profileImageUrl != null) filled++;
     return ((filled / total) * 100).toInt();
   }
 }
