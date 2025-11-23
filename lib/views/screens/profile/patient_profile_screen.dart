@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/themes/app_colors.dart';
-import '../../../view_models/profile_view_model.dart';
+import '../../../view_models/patient_profile_view_model.dart';
 import '../../../view_models/auth_view_model.dart';
 import '../../../data/models/patient_profile_model.dart';
 import '../../widgets/profile_field_tile.dart';

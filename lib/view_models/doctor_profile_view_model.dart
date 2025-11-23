@@ -23,9 +23,15 @@ class DoctorProfileViewModel extends ChangeNotifier {
   String? selectedGender;
 
   // --- File Upload State ---
+  // 1. Identity Proof (Admin Only)
   File? _identityProofFile;
   File? get identityProofFile => _identityProofFile;
   String? identityProofFileName; // To show in UI
+
+  // 2. Profile Picture (Public)
+  File? _profileImageFile;
+  File? get profileImageFile => _profileImageFile;
+  String? profileImageUrl; // Existing URL from DB
 
   bool isLoading = false;
 
@@ -54,7 +60,7 @@ class DoctorProfileViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // --- Logic: Image Picker ---
+  // --- Logic: Image Pickers ---
   Future<void> pickIdentityProof() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
@@ -62,6 +68,16 @@ class DoctorProfileViewModel extends ChangeNotifier {
     if (image != null) {
       _identityProofFile = File(image.path);
       identityProofFileName = image.name;
+      notifyListeners();
+    }
+  }
+
+  Future<void> pickProfileImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+    if (image != null) {
+      _profileImageFile = File(image.path);
       notifyListeners();
     }
   }
@@ -112,15 +128,18 @@ class DoctorProfileViewModel extends ChangeNotifier {
         throw Exception("No user logged in");
       }
 
-      // 3. Upload Image (if selected)
+      // 3. Upload Images (if selected)
       String? proofUrl;
       if (_identityProofFile != null) {
         proofUrl = await _uploadToCloudinary(_identityProofFile!);
       }
 
+      String? newProfileImageUrl;
+      if (_profileImageFile != null) {
+        newProfileImageUrl = await _uploadToCloudinary(_profileImageFile!);
+      }
+
       // 4. Create Data Map
-      // Note: We save 'specialization' and 'city' at the ROOT level
-      // so we can filter easily in the Patient App (where clause).
       final doctorData = {
         "name": nameController.text,
         "email": user.email,
@@ -133,12 +152,20 @@ class DoctorProfileViewModel extends ChangeNotifier {
         "profile": {
           "gender": selectedGender,
           "experience": experienceController.text,
+          "profileImageUrl":
+              newProfileImageUrl ??
+              profileImageUrl ??
+              "", // Use new, or existing, or empty
           "education": {
             "qualification": qualificationController.text,
             "regNumber": regNumberController.text,
             "regCouncil": regCouncilController.text,
             "regYear": regYearController.text,
-            "identityProofUrl": proofUrl ?? "",
+            // Only update proof URL if a new one was uploaded, otherwise keep existing (logic handled by merge, but explicit here for clarity if we were not merging deep maps)
+            // Since we are doing SetOptions(merge: true), we need to be careful.
+            // If proofUrl is null (no new file), we don't want to overwrite with null if we were replacing.
+            // But here we are constructing the map.
+            if (proofUrl != null) "identityProofUrl": proofUrl,
           },
         },
         "updatedAt": FieldValue.serverTimestamp(),
@@ -152,7 +179,14 @@ class DoctorProfileViewModel extends ChangeNotifier {
 
       print("Profile Saved Successfully: $doctorData");
 
-      // Optional: Show success message via a callback or Navigation service
+      // Update local state if needed
+      if (newProfileImageUrl != null) {
+        profileImageUrl = newProfileImageUrl;
+        _profileImageFile = null; // Clear selection
+      }
+      if (proofUrl != null) {
+        _identityProofFile = null;
+      }
     } catch (e) {
       print("Error saving profile: $e");
     } finally {
@@ -185,6 +219,7 @@ class DoctorProfileViewModel extends ChangeNotifier {
           final profile = data['profile'];
           selectedGender = profile['gender'];
           experienceController.text = profile['experience'] ?? '';
+          profileImageUrl = profile['profileImageUrl'];
 
           if (profile['education'] != null) {
             final edu = profile['education'];
@@ -192,8 +227,6 @@ class DoctorProfileViewModel extends ChangeNotifier {
             regNumberController.text = edu['regNumber'] ?? '';
             regCouncilController.text = edu['regCouncil'] ?? '';
             regYearController.text = edu['regYear'] ?? '';
-            // We could load the image URL here if we had a variable for it
-            // identityProofUrl = edu['identityProofUrl'];
           }
         }
         notifyListeners();

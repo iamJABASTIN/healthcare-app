@@ -95,6 +95,47 @@ class _DoctorProfileViewState extends State<DoctorProfileView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Profile Picture Upload
+          Center(
+            child: Stack(
+              children: [
+                CircleAvatar(
+                  radius: 50,
+                  backgroundColor: Colors.grey[200],
+                  backgroundImage: vm.profileImageFile != null
+                      ? FileImage(vm.profileImageFile!)
+                      : (vm.profileImageUrl != null &&
+                            vm.profileImageUrl!.isNotEmpty)
+                      ? NetworkImage(vm.profileImageUrl!)
+                      : null as ImageProvider?,
+                  child:
+                      (vm.profileImageFile == null &&
+                          (vm.profileImageUrl == null ||
+                              vm.profileImageUrl!.isEmpty))
+                      ? Icon(Icons.person, size: 50, color: Colors.grey)
+                      : null,
+                ),
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: GestureDetector(
+                    onTap: () => vm.pickProfileImage(),
+                    child: CircleAvatar(
+                      radius: 18,
+                      backgroundColor: Colors.blue,
+                      child: Icon(
+                        Icons.camera_alt,
+                        size: 18,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 20),
+
           Text(
             "Personal Information",
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),

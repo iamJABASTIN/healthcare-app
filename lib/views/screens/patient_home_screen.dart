@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/themes/app_colors.dart';
 
-import '../../view_models/profile_view_model.dart';
+import '../../view_models/patient_profile_view_model.dart';
+import '../../view_models/patient_home_view_model.dart';
 import 'profile/patient_profile_screen.dart';
+import '../widgets/doctor_card.dart';
+import 'doctor_details_screen.dart';
 
 class PatientHomeScreen extends StatefulWidget {
   const PatientHomeScreen({super.key});
@@ -13,31 +16,38 @@ class PatientHomeScreen extends StatefulWidget {
 }
 
 class _PatientHomeScreenState extends State<PatientHomeScreen> {
+  final TextEditingController _searchController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
-    // MVVM: Fetch the latest profile data as soon as the Home Screen loads
-    // We use Microtask to ensure the build frame is done before fetching
+    // MVVM: Fetch the latest profile data and doctors as soon as the Home Screen loads
     Future.microtask(() {
       final profileVM = Provider.of<ProfileViewModel>(context, listen: false);
+      final homeVM = Provider.of<PatientHomeViewModel>(context, listen: false);
 
-      // Fetch the profile data
+      // Fetch data
       profileVM.fetchUserProfile();
+      homeVM.fetchDoctors();
     });
   }
 
   @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Watch the ProfileViewModel for changes (like Location or Name)
+    // Watch the ViewModels
     final profileVM = Provider.of<ProfileViewModel>(context);
+    final homeVM = Provider.of<PatientHomeViewModel>(context);
 
     return Scaffold(
       backgroundColor: AppColors.lightGrey,
       body: Column(
         children: [
-          // ==================================================
-          // 1. CUSTOM HEADER (Blue Container)
-          // ==================================================
           Container(
             padding: const EdgeInsets.only(
               top: 50,
@@ -164,6 +174,10 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                     borderRadius: BorderRadius.circular(30),
                   ),
                   child: TextField(
+                    controller: _searchController,
+                    onChanged: (value) {
+                      homeVM.searchDoctors(value);
+                    },
                     decoration: InputDecoration(
                       hintText: "Search for clinics, doctors...",
                       hintStyle: TextStyle(
@@ -180,23 +194,95 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
             ),
           ),
 
-          // ==================================================
-          // 2. BODY CONTENT (Placeholder for Grid)
-          // ==================================================
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  // This space is ready for the "Physical Appointment / Video Consult" grid
-                  const SizedBox(height: 20),
-                  Text(
-                    "Services Coming Soon",
-                    style: TextStyle(color: Colors.grey[400]),
+          // --- CATEGORIES (Horizontal List) ---
+          Container(
+            height: 50,
+            margin: const EdgeInsets.symmetric(vertical: 10),
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: homeVM.categories.length,
+              itemBuilder: (context, index) {
+                final category = homeVM.categories[index];
+                final isSelected = category == homeVM.selectedCategory;
+                return GestureDetector(
+                  onTap: () {
+                    homeVM.filterByCategory(category);
+                    _searchController
+                        .clear(); // Clear search when changing category
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.only(right: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected ? AppColors.primaryBlue : Colors.white,
+                      borderRadius: BorderRadius.circular(25),
+                      border: isSelected
+                          ? null
+                          : Border.all(color: Colors.grey[300]!),
+                    ),
+                    child: Center(
+                      child: Text(
+                        category,
+                        style: TextStyle(
+                          color: isSelected ? Colors.white : AppColors.textDark,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
                   ),
-                ],
-              ),
+                );
+              },
             ),
+          ),
+
+          // --- DOCTOR LIST ---
+          Expanded(
+            child: homeVM.isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : homeVM.doctors.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.search_off,
+                          size: 60,
+                          color: Colors.grey[300],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          "No doctors found",
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: homeVM.doctors.length,
+                    itemBuilder: (context, index) {
+                      final doctor = homeVM.doctors[index];
+                      return DoctorCard(
+                        doctor: doctor,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  DoctorDetailsScreen(doctor: doctor),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
           ),
         ],
       ),
