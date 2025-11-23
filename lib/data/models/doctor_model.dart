@@ -9,8 +9,9 @@ class DoctorModel {
   final String experience;
   final String qualification;
   final String identityProofUrl;
-  final String profileImageUrl; // New field
+  final String profileImageUrl;
   final String regNumber;
+  final double rating; // New field
 
   DoctorModel({
     required this.uid,
@@ -23,8 +24,9 @@ class DoctorModel {
     required this.experience,
     required this.qualification,
     required this.identityProofUrl,
-    required this.profileImageUrl, // New field
+    required this.profileImageUrl,
     required this.regNumber,
+    this.rating = 0.0,
   });
 
   factory DoctorModel.fromMap(Map<String, dynamic> map) {
@@ -39,11 +41,11 @@ class DoctorModel {
       location: map['location'] ?? '',
       specialization: map['specialization'] ?? '',
       status: map['status'] ?? 'pending',
+      rating: (map['rating'] ?? 4.5).toDouble(), // Default to 4.5 for testing
       // Nested fields
       gender: profile['gender'] ?? '',
       experience: profile['experience'] ?? '',
-      profileImageUrl:
-          profile['profileImageUrl'] ?? '', // Read from profile map
+      profileImageUrl: profile['profileImageUrl'] ?? '',
       qualification: education['qualification'] ?? '',
       identityProofUrl: education['identityProofUrl'] ?? '',
       regNumber: education['regNumber'] ?? '',
@@ -58,10 +60,11 @@ class DoctorModel {
       'location': location,
       'specialization': specialization,
       'status': status,
+      'rating': rating,
       'profile': {
         'gender': gender,
         'experience': experience,
-        'profileImageUrl': profileImageUrl, // Save to profile map
+        'profileImageUrl': profileImageUrl,
         'education': {
           'qualification': qualification,
           'identityProofUrl': identityProofUrl,

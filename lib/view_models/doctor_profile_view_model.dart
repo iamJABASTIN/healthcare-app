@@ -195,8 +195,29 @@ class DoctorProfileViewModel extends ChangeNotifier {
     }
   }
 
+  // --- Logic: Clear Data ---
+  void clearData() {
+    nameController.clear();
+    cityController.clear();
+    experienceController.clear();
+    qualificationController.clear();
+    regNumberController.clear();
+    regCouncilController.clear();
+    regYearController.clear();
+    selectedSpecialty = null;
+    selectedGender = null;
+    _identityProofFile = null;
+    identityProofFileName = null;
+    _profileImageFile = null;
+    profileImageUrl = null;
+    notifyListeners();
+  }
+
   // --- Logic: Fetch Profile ---
   Future<void> fetchProfile() async {
+    // Clear previous data to prevent leakage
+    clearData();
+
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 

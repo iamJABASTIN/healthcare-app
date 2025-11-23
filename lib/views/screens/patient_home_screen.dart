@@ -22,12 +22,18 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
   void initState() {
     super.initState();
     // MVVM: Fetch the latest profile data and doctors as soon as the Home Screen loads
-    Future.microtask(() {
+    Future.microtask(() async {
       final profileVM = Provider.of<ProfileViewModel>(context, listen: false);
       final homeVM = Provider.of<PatientHomeViewModel>(context, listen: false);
 
       // Fetch data
-      profileVM.fetchUserProfile();
+      await profileVM.fetchUserProfile();
+
+      // Pass location to HomeVM for filtering
+      if (profileVM.patientProfile?.location != null) {
+        homeVM.setUserLocation(profileVM.patientProfile!.location);
+      }
+
       homeVM.fetchDoctors();
     });
   }
@@ -43,6 +49,15 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
     // Watch the ViewModels
     final profileVM = Provider.of<ProfileViewModel>(context);
     final homeVM = Provider.of<PatientHomeViewModel>(context);
+
+    // Update location in HomeVM if it changes in ProfileVM
+    if (profileVM.patientProfile?.location != null &&
+        homeVM.filterByLocation &&
+        homeVM.doctors.isEmpty &&
+        !homeVM.isLoading) {
+      // Optional: Retry logic or just ensure sync
+      // homeVM.setUserLocation(profileVM.patientProfile!.location);
+    }
 
     return Scaffold(
       backgroundColor: AppColors.lightGrey,
@@ -110,7 +125,21 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                                         ),
                                         onTap: () {
                                           Navigator.pop(context);
-                                          profileVM.fetchCurrentLocation();
+                                          profileVM.fetchCurrentLocation().then(
+                                            (_) {
+                                              // Update HomeVM with new location
+                                              if (profileVM
+                                                      .patientProfile
+                                                      ?.location !=
+                                                  null) {
+                                                homeVM.setUserLocation(
+                                                  profileVM
+                                                      .patientProfile!
+                                                      .location,
+                                                );
+                                              }
+                                            },
+                                          );
                                         },
                                       ),
                                       ListTile(
@@ -121,6 +150,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                                           _showManualLocationDialog(
                                             context,
                                             profileVM,
+                                            homeVM,
                                           );
                                         },
                                       ),
@@ -166,7 +196,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
 
                 const SizedBox(height: 24),
 
-                // --- SEARCH BAR ---
+                // --- SEARCH BAR WITH FILTER ---
                 Container(
                   height: 50,
                   decoration: BoxDecoration(
@@ -176,7 +206,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                   child: TextField(
                     controller: _searchController,
                     onChanged: (value) {
-                      homeVM.searchDoctors(value);
+                      homeVM.setSearchQuery(value);
                     },
                     decoration: InputDecoration(
                       hintText: "Search for clinics, doctors...",
@@ -185,57 +215,21 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                         fontSize: 14,
                       ),
                       prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                      suffixIcon: IconButton(
+                        icon: const Icon(
+                          Icons.filter_list,
+                          color: AppColors.primaryBlue,
+                        ),
+                        onPressed: () {
+                          _showFilterBottomSheet(context, homeVM);
+                        },
+                      ),
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(vertical: 14),
                     ),
                   ),
                 ),
               ],
-            ),
-          ),
-
-          // --- CATEGORIES (Horizontal List) ---
-          Container(
-            height: 50,
-            margin: const EdgeInsets.symmetric(vertical: 10),
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: homeVM.categories.length,
-              itemBuilder: (context, index) {
-                final category = homeVM.categories[index];
-                final isSelected = category == homeVM.selectedCategory;
-                return GestureDetector(
-                  onTap: () {
-                    homeVM.filterByCategory(category);
-                    _searchController
-                        .clear(); // Clear search when changing category
-                  },
-                  child: Container(
-                    margin: const EdgeInsets.only(right: 10),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isSelected ? AppColors.primaryBlue : Colors.white,
-                      borderRadius: BorderRadius.circular(25),
-                      border: isSelected
-                          ? null
-                          : Border.all(color: Colors.grey[300]!),
-                    ),
-                    child: Center(
-                      child: Text(
-                        category,
-                        style: TextStyle(
-                          color: isSelected ? Colors.white : AppColors.textDark,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
             ),
           ),
 
@@ -261,6 +255,17 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                             fontSize: 16,
                           ),
                         ),
+                        if (homeVM.filterByLocation)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              "Try turning off 'Nearby Only' filter",
+                              style: TextStyle(
+                                color: Colors.blue,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                   )
@@ -289,9 +294,208 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
     );
   }
 
+  void _showFilterBottomSheet(
+    BuildContext context,
+    PatientHomeViewModel homeVM,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true, // Allow full height
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.7,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          expand: false,
+          builder: (context, scrollController) {
+            return Consumer<PatientHomeViewModel>(
+              builder: (context, vm, child) {
+                return SingleChildScrollView(
+                  controller: scrollController,
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              "Filter Doctors",
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textDark,
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                vm.resetFilters();
+                                _searchController.clear();
+                                Navigator.pop(context);
+                              },
+                              child: const Text("Reset"),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+
+                        // 1. Sort By
+                        const Text(
+                          "Sort By",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textDark,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        FilterChip(
+                          label: const Text("Rating (High to Low)"),
+                          selected: vm.sortByRating,
+                          onSelected: (bool selected) {
+                            vm.toggleSortByRating(selected);
+                          },
+                          selectedColor: AppColors.primaryBlue.withOpacity(0.2),
+                          checkmarkColor: AppColors.primaryBlue,
+                        ),
+                        const SizedBox(height: 20),
+
+                        // 2. Location Filter
+                        const Text(
+                          "Location",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textDark,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        SwitchListTile(
+                          title: const Text("Show Nearby Only"),
+                          subtitle: Text(
+                            "Doctors in ${Provider.of<ProfileViewModel>(context, listen: false).patientProfile?.location ?? 'your city'}",
+                          ),
+                          value: vm.filterByLocation,
+                          onChanged: (bool value) {
+                            vm.toggleLocationFilter(value);
+                          },
+                          activeColor: AppColors.primaryBlue,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        const SizedBox(height: 20),
+
+                        // 3. Specialty Filter
+                        const Text(
+                          "Specialty",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textDark,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          children: vm.categories.map((category) {
+                            final isSelected = category == vm.selectedCategory;
+                            return ChoiceChip(
+                              label: Text(category),
+                              selected: isSelected,
+                              onSelected: (selected) {
+                                if (selected) {
+                                  vm.setCategory(category);
+                                }
+                              },
+                              selectedColor: AppColors.primaryBlue,
+                              labelStyle: TextStyle(
+                                color: isSelected
+                                    ? Colors.white
+                                    : AppColors.textDark,
+                              ),
+                              backgroundColor: Colors.grey[200],
+                            );
+                          }).toList(),
+                        ),
+                        const SizedBox(height: 20),
+
+                        // 4. Gender Filter
+                        const Text(
+                          "Gender",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textDark,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 10,
+                          children: vm.genders.map((gender) {
+                            final isSelected = gender == vm.selectedGender;
+                            return ChoiceChip(
+                              label: Text(gender),
+                              selected: isSelected,
+                              onSelected: (selected) {
+                                if (selected) {
+                                  vm.setGender(gender);
+                                }
+                              },
+                              selectedColor: AppColors.primaryBlue,
+                              labelStyle: TextStyle(
+                                color: isSelected
+                                    ? Colors.white
+                                    : AppColors.textDark,
+                              ),
+                              backgroundColor: Colors.grey[200],
+                            );
+                          }).toList(),
+                        ),
+                        const SizedBox(height: 30),
+
+                        // Apply Button
+                        SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: ElevatedButton(
+                            onPressed: () => Navigator.pop(context),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primaryBlue,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text(
+                              "Apply Filters",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
   void _showManualLocationDialog(
     BuildContext context,
     ProfileViewModel profileVM,
+    PatientHomeViewModel homeVM,
   ) {
     final TextEditingController controller = TextEditingController();
 
@@ -315,10 +519,10 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
             ElevatedButton(
               onPressed: () {
                 if (controller.text.trim().isNotEmpty) {
-                  profileVM.updateProfileField(
-                    'location',
-                    controller.text.trim(),
-                  );
+                  final newLocation = controller.text.trim();
+                  profileVM.updateProfileField('location', newLocation);
+                  // Update HomeVM
+                  homeVM.setUserLocation(newLocation);
                   Navigator.pop(context);
                 }
               },

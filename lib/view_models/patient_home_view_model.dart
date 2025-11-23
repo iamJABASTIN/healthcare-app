@@ -25,6 +25,21 @@ class PatientHomeViewModel extends ChangeNotifier {
   String _selectedCategory = "All";
   String get selectedCategory => _selectedCategory;
 
+  // Filters
+  String _searchQuery = "";
+  String _selectedGender = "All";
+  String get selectedGender => _selectedGender;
+
+  // New Filters
+  String? _userLocation;
+  bool _filterByLocation = true; // Default to true
+  bool get filterByLocation => _filterByLocation;
+
+  bool _sortByRating = false;
+  bool get sortByRating => _sortByRating;
+
+  final List<String> genders = ["All", "Male", "Female"];
+
   // Fetch all doctors from Firestore
   Future<void> fetchDoctors() async {
     _setLoading(true);
@@ -34,32 +49,19 @@ class PatientHomeViewModel extends ChangeNotifier {
           // .where('status', isEqualTo: 'approved') // Commented out for testing
           .get();
 
-      // If no approved doctors found, try fetching all for testing if needed
-      // But for production, we stick to 'approved'.
-      // NOTE: If you are testing and your doctor is 'pending_approval',
-      // you might want to manually approve them in Firestore or remove this filter temporarily.
-
-      // For this assessment, let's assume we want to see all for now to verify data,
-      // or we can strictly follow the 'approved' rule.
-      // Let's stick to 'approved' but I will add a fallback or comment.
-
-      // TEMPORARY: Fetching ALL doctors for testing purposes if 'approved' filter yields nothing
-      // In a real app, strictly use .where('status', isEqualTo: 'approved')
-
       List<DoctorModel> loadedDoctors = [];
 
       if (snapshot.docs.isNotEmpty) {
         loadedDoctors = snapshot.docs.map((doc) {
           return DoctorModel.fromMap(doc.data() as Map<String, dynamic>);
         }).toList();
-      } else {
-        // Fallback for testing: Fetch ALL if no approved ones found (Optional)
-        // final allSnap = await _firestore.collection('doctors').get();
-        // loadedDoctors = allSnap.docs.map((doc) => DoctorModel.fromMap(doc.data() as Map<String, dynamic>)).toList();
       }
 
       _allDoctors = loadedDoctors;
       _filteredDoctors = loadedDoctors;
+
+      // Apply initial filters (like location if set)
+      _applyFilters();
 
       notifyListeners();
     } catch (e) {
@@ -69,34 +71,94 @@ class PatientHomeViewModel extends ChangeNotifier {
     }
   }
 
-  // Filter by Category
-  void filterByCategory(String category) {
-    _selectedCategory = category;
-    if (category == "All") {
-      _filteredDoctors = List.from(_allDoctors);
-    } else {
-      _filteredDoctors = _allDoctors
-          .where((doc) => doc.specialization == category)
+  // Set User Location (called from UI)
+  void setUserLocation(String? location) {
+    _userLocation = location;
+    _applyFilters();
+  }
+
+  // Apply all filters (Search + Category + Gender + Location + Sort)
+  void _applyFilters() {
+    List<DoctorModel> temp = List.from(_allDoctors);
+
+    // 1. Search
+    if (_searchQuery.isNotEmpty) {
+      final lowerQuery = _searchQuery.toLowerCase();
+      temp = temp.where((doc) {
+        final nameMatches = doc.name.toLowerCase().contains(lowerQuery);
+        final specMatches = doc.specialization.toLowerCase().contains(
+          lowerQuery,
+        );
+        return nameMatches || specMatches;
+      }).toList();
+    }
+
+    // 2. Category (Specialization)
+    if (_selectedCategory != "All") {
+      temp = temp
+          .where((doc) => doc.specialization == _selectedCategory)
           .toList();
     }
+
+    // 3. Gender
+    if (_selectedGender != "All") {
+      temp = temp.where((doc) => doc.gender == _selectedGender).toList();
+    }
+
+    // 4. Location (Nearby)
+    if (_filterByLocation &&
+        _userLocation != null &&
+        _userLocation!.isNotEmpty) {
+      // Simple string match for now. In real app, use Geolocation distance.
+      // We check if doctor's location contains the user's city (case-insensitive)
+      final userLoc = _userLocation!.toLowerCase();
+      temp = temp.where((doc) {
+        return doc.location.toLowerCase().contains(userLoc);
+      }).toList();
+    }
+
+    // 5. Sort by Rating
+    if (_sortByRating) {
+      temp.sort((a, b) => b.rating.compareTo(a.rating)); // High to Low
+    }
+
+    _filteredDoctors = temp;
     notifyListeners();
   }
 
-  // Search by Name or Specialization
-  void searchDoctors(String query) {
-    if (query.isEmpty) {
-      // If search is cleared, revert to current category filter
-      filterByCategory(_selectedCategory);
-      return;
-    }
+  // Public Setters for Filters
+  void setSearchQuery(String query) {
+    _searchQuery = query;
+    _applyFilters();
+  }
 
-    final lowerQuery = query.toLowerCase();
-    _filteredDoctors = _allDoctors.where((doc) {
-      final nameMatches = doc.name.toLowerCase().contains(lowerQuery);
-      final specMatches = doc.specialization.toLowerCase().contains(lowerQuery);
-      return nameMatches || specMatches;
-    }).toList();
-    notifyListeners();
+  void setCategory(String category) {
+    _selectedCategory = category;
+    _applyFilters();
+  }
+
+  void setGender(String gender) {
+    _selectedGender = gender;
+    _applyFilters();
+  }
+
+  void toggleLocationFilter(bool value) {
+    _filterByLocation = value;
+    _applyFilters();
+  }
+
+  void toggleSortByRating(bool value) {
+    _sortByRating = value;
+    _applyFilters();
+  }
+
+  void resetFilters() {
+    _searchQuery = "";
+    _selectedCategory = "All";
+    _selectedGender = "All";
+    _filterByLocation = true; // Reset to default
+    _sortByRating = false;
+    _applyFilters();
   }
 
   void _setLoading(bool value) {
