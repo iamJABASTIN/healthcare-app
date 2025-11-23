@@ -98,7 +98,25 @@ class DoctorAppointmentsViewModel extends ChangeNotifier {
     List<AppointmentWithPatientDetails> appointmentsWithDetails = [];
 
     for (var doc in snapshot.docs) {
-      final appointment = AppointmentModel.fromMap(doc.data(), doc.id);
+      var appointment = AppointmentModel.fromMap(doc.data(), doc.id);
+
+      // Fetch patient name if missing
+      if (appointment.patientName.isEmpty) {
+        try {
+          final patientDoc = await FirebaseFirestore.instance
+              .collection('patients')
+              .doc(appointment.patientId)
+              .get();
+          if (patientDoc.exists) {
+            final name = patientDoc.data()?['name'] as String?;
+            if (name != null && name.isNotEmpty) {
+              appointment = appointment.copyWith(patientName: name);
+            }
+          }
+        } catch (e) {
+          debugPrint("Error fetching patient name: $e");
+        }
+      }
 
       // Fetch patient profile
       PatientProfileModel? patientProfile;

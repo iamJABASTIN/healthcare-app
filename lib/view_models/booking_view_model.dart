@@ -50,6 +50,8 @@ class BookingViewModel extends ChangeNotifier {
       debugPrint("Fetching slots for Doctor: $doctorId");
       debugPrint("Date: $date, DayOfWeek: $dayOfWeek");
 
+      List<String> allSlots = [];
+
       // Fetch ALL availability docs to avoid query issues
       final availabilitySnapshot = await FirebaseFirestore.instance
           .collection('doctors')
@@ -61,13 +63,11 @@ class BookingViewModel extends ChangeNotifier {
         "Total availability docs found: ${availabilitySnapshot.docs.length}",
       );
 
-      List<String> allSlots = [];
-
       // Find the document for the current day of week (handling Int or String)
-      QueryDocumentSnapshot? targetDoc;
+      QueryDocumentSnapshot<Map<String, dynamic>>? targetDoc;
 
       for (var doc in availabilitySnapshot.docs) {
-        final data = doc.data() as Map<String, dynamic>;
+        final data = doc.data();
         final docDay = data['dayOfWeek'];
 
         int? dayInt;
@@ -100,7 +100,7 @@ class BookingViewModel extends ChangeNotifier {
       }
 
       if (targetDoc != null) {
-        final data = targetDoc.data() as Map<String, dynamic>;
+        final data = targetDoc.data();
         debugPrint("Found matching availability doc: ${targetDoc.id}");
         debugPrint("Raw Availability Data: $data");
 

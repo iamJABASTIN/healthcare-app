@@ -49,4 +49,28 @@ class AppointmentModel {
       'createdAt': Timestamp.fromDate(createdAt),
     };
   }
+
+  AppointmentModel copyWith({
+    String? id,
+    String? doctorId,
+    String? doctorName,
+    String? patientId,
+    String? patientName,
+    DateTime? date,
+    String? time,
+    String? status,
+    DateTime? createdAt,
+  }) {
+    return AppointmentModel(
+      id: id ?? this.id,
+      doctorId: doctorId ?? this.doctorId,
+      doctorName: doctorName ?? this.doctorName,
+      patientId: patientId ?? this.patientId,
+      patientName: patientName ?? this.patientName,
+      date: date ?? this.date,
+      time: time ?? this.time,
+      status: status ?? this.status,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
 }

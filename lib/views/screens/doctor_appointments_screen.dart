@@ -148,7 +148,9 @@ class _DoctorAppointmentsScreenState extends State<DoctorAppointmentsScreen> {
                 ),
               ),
               title: Text(
-                appointment.patientName,
+                appointment.patientName.isNotEmpty
+                    ? appointment.patientName
+                    : "Unknown Patient",
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
@@ -158,34 +160,46 @@ class _DoctorAppointmentsScreenState extends State<DoctorAppointmentsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 4),
-                  Row(
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 16,
+                    runSpacing: 4,
                     children: [
-                      const Icon(
-                        Icons.calendar_today,
-                        size: 14,
-                        color: AppColors.textLight,
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.calendar_today,
+                            size: 14,
+                            color: AppColors.textLight,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            DateFormat('MMM dd, yyyy').format(appointment.date),
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: AppColors.textLight,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        DateFormat('MMM dd, yyyy').format(appointment.date),
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: AppColors.textLight,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      const Icon(
-                        Icons.access_time,
-                        size: 14,
-                        color: AppColors.textLight,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        appointment.time,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: AppColors.textLight,
-                        ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.access_time,
+                            size: 14,
+                            color: AppColors.textLight,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            appointment.time,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: AppColors.textLight,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -195,12 +209,23 @@ class _DoctorAppointmentsScreenState extends State<DoctorAppointmentsScreen> {
                 if (profile != null) ...[
                   const Divider(),
                   const SizedBox(height: 8),
+                  _buildSectionTitle("Personal Information"),
+                  _buildInfoRow("Contact Number", profile.contactNumber),
+                  _buildInfoRow("Gender", profile.gender),
+                  _buildInfoRow("Date of Birth", profile.dob),
+                  _buildInfoRow("Blood Group", profile.bloodGroup),
+                  _buildInfoRow("Height", profile.height),
+                  _buildInfoRow("Weight", profile.weight),
+                  _buildInfoRow("Location", profile.location),
+                  _buildInfoRow("Emergency Contact", profile.emergencyContact),
+                  const SizedBox(height: 16),
                   _buildSectionTitle("Medical Information"),
                   _buildInfoRow("Allergies", profile.allergies),
                   _buildInfoRow(
                     "Current Medications",
                     profile.currentMedications,
                   ),
+                  _buildInfoRow("Past Medications", profile.pastMedications),
                   _buildInfoRow("Chronic Diseases", profile.chronicDiseases),
                   _buildInfoRow("Injuries", profile.injuries),
                   _buildInfoRow("Surgeries", profile.surgeries),
@@ -213,6 +238,7 @@ class _DoctorAppointmentsScreenState extends State<DoctorAppointmentsScreen> {
                   ),
                   _buildInfoRow("Activity Level", profile.activityLevel),
                   _buildInfoRow("Food Preference", profile.foodPreference),
+                  _buildInfoRow("Occupation", profile.occupation),
                 ] else ...[
                   const Padding(
                     padding: EdgeInsets.all(16.0),
