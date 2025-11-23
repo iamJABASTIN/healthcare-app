@@ -32,31 +32,28 @@ This project adheres to the **MVVM (Model-View-ViewModel)** architecture to ensu
 ## 📱 Screenshots
 ### User Flow
 
-```markdown
-![user Screen](docs/screenshots/u1.png)
-![user Screen](docs/screenshots/u2.png)
-![user Screen](docs/screenshots/u3.png)
-![user Screen](docs/screenshots/u4.png)
-![user Screen](docs/screenshots/u5.png)
-![user Screen](docs/screenshots/u6.png)
-![user Screen](docs/screenshots/u7.png)
-![user Screen](docs/screenshots/u8.png)
-![user Screen](docs/screenshots/u9.png)
+![User Screen 1](docs/screenshots/u1.png)
+![User Screen 2](docs/screenshots/u2.png)
+![User Screen 3](docs/screenshots/u3.png)
+![User Screen 4](docs/screenshots/u4.png)
+![User Screen 5](docs/screenshots/u5.png)
+![User Screen 6](docs/screenshots/u6.png)
+![User Screen 7](docs/screenshots/u7.png)
+![User Screen 8](docs/screenshots/u8.png)
+![User Screen 9](docs/screenshots/u9.png)
 
 ### Doctor Flow
-![Docter Screen](docs/screenshots/d1.png)
-![Docter Screen](docs/screenshots/d2.png)
-![Docter Screen](docs/screenshots/d3.png)
-![Docter Screen](docs/screenshots/d4.png)
-![Docter Screen](docs/screenshots/d5.png)
-![Docter Screen](docs/screenshots/d6.png)
-![Docter Screen](docs/screenshots/d7.png)
+![Doctor Screen 1](docs/screenshots/d1.png)
+![Doctor Screen 2](docs/screenshots/d2.png)
+![Doctor Screen 3](docs/screenshots/d3.png)
+![Doctor Screen 4](docs/screenshots/d4.png)
+![Doctor Screen 5](docs/screenshots/d5.png)
+![Doctor Screen 6](docs/screenshots/d6.png)
+![Doctor Screen 7](docs/screenshots/d7.png)
 
 ### Admin Flow
-![Docter Screen](docs/screenshots/a1.png)
-![Docter Screen](docs/screenshots/a2.png)
-![Booking - Confirmation](assets/screenshots/booking-2.png)
-```
+![Admin Screen 1](docs/screenshots/a1.png)
+![Admin Screen 2](docs/screenshots/a2.png)
 
 ## ✨ Features
 
