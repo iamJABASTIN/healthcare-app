@@ -16,7 +16,7 @@ class _PatientNavigationState extends State<PatientNavigation> {
 
   final List<String> _titles = [
     '',
-    'My Appointments',
+    'My Bookings',
     '',
   ];
 
