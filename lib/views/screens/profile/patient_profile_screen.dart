@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/themes/app_colors.dart';
 import '../../../view_models/profile_view_model.dart';
+import '../../../view_models/auth_view_model.dart';
 import '../../../data/models/patient_profile_model.dart';
 import '../../widgets/profile_field_tile.dart';
+import '../auth/login_view.dart';
 
 class PatientProfileScreen extends StatefulWidget {
   const PatientProfileScreen({super.key});
@@ -38,9 +40,28 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
           title: Text(profileVM.userData?['name'] ?? "User"), // "Jabastin"
           centerTitle: false,
           elevation: 0,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.logout, color: Colors.white),
+              onPressed: () {
+                // Logout Logic
+                final authVM = Provider.of<AuthViewModel>(
+                  context,
+                  listen: false,
+                );
+                authVM.signOut();
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginView()),
+                  (route) => false,
+                );
+              },
+            ),
+          ],
           bottom: const TabBar(
             indicatorColor: Colors.white,
             indicatorWeight: 3,
+            labelColor: Colors.white, // Explicitly set selected color
             labelStyle: TextStyle(fontWeight: FontWeight.bold),
             unselectedLabelColor: Colors.white70,
             tabs: [
@@ -62,13 +83,14 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                     profile,
                     profileVM.userData?['name'],
                     profileVM.userData?['email'],
+                    profileVM,
                   ),
 
                   // 2. Medical Tab
-                  _buildMedicalTab(context, profile),
+                  _buildMedicalTab(context, profile, profileVM),
 
                   // 3. Lifestyle Tab
-                  _buildLifestyleTab(context, profile),
+                  _buildLifestyleTab(context, profile, profileVM),
                 ],
               ),
             ),
@@ -90,6 +112,9 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
               child: ElevatedButton(
                 onPressed: () {
                   // Action to complete or save
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Profile Saved Successfully")),
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryBlue,
@@ -132,6 +157,7 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
     PatientProfileModel? profile,
     String? name,
     String? email,
+    ProfileViewModel profileVM,
   ) {
     return SingleChildScrollView(
       child: Column(
@@ -189,68 +215,122 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
             label: "Contact Number",
             value: profile?.contactNumber ?? "+91-7904686738",
             placeholder: "add number",
-            onTap: () {},
+            onTap: () => _showEditDialog(
+              context,
+              "Contact Number",
+              "contactNumber",
+              profile?.contactNumber,
+              profileVM,
+            ),
           ),
           ProfileFieldTile(
             label: "Email Id",
             value: email,
             placeholder: "add email",
-            onTap: () {},
+            onTap: () {
+              // Email usually not editable here or needs specific flow
+            },
           ),
           ProfileFieldTile(
             label: "Gender",
             value: profile?.gender,
             placeholder: "Add gender",
-            onTap: () {},
+            onTap: () => _showEditDialog(
+              context,
+              "Gender",
+              "gender",
+              profile?.gender,
+              profileVM,
+            ),
           ),
           ProfileFieldTile(
             label: "Date of Birth",
             value: profile?.dob,
             placeholder: "yyyy mm dd",
-            onTap: () {},
+            onTap: () => _selectDate(context, "dob", profile?.dob, profileVM),
           ),
           ProfileFieldTile(
             label: "Blood Group",
             value: profile?.bloodGroup,
             placeholder: "add blood group",
-            onTap: () {},
+            onTap: () => _showEditDialog(
+              context,
+              "Blood Group",
+              "bloodGroup",
+              profile?.bloodGroup,
+              profileVM,
+            ),
           ),
           ProfileFieldTile(
             label: "Marital Status",
             value: profile?.maritalStatus,
             placeholder: "add marital status",
-            onTap: () {},
+            onTap: () => _showEditDialog(
+              context,
+              "Marital Status",
+              "maritalStatus",
+              profile?.maritalStatus,
+              profileVM,
+            ),
           ),
           ProfileFieldTile(
             label: "Height",
             value: profile?.height,
             placeholder: "add height",
-            onTap: () {},
+            onTap: () => _showEditDialog(
+              context,
+              "Height",
+              "height",
+              profile?.height,
+              profileVM,
+            ),
           ),
           ProfileFieldTile(
             label: "Weight",
             value: profile?.weight,
             placeholder: "add weight",
-            onTap: () {},
+            onTap: () => _showEditDialog(
+              context,
+              "Weight",
+              "weight",
+              profile?.weight,
+              profileVM,
+            ),
           ),
           ProfileFieldTile(
             label: "Emergency Contact",
             value: profile?.emergencyContact,
             placeholder: "add emergency details",
-            onTap: () {},
+            onTap: () => _showEditDialog(
+              context,
+              "Emergency Contact",
+              "emergencyContact",
+              profile?.emergencyContact,
+              profileVM,
+            ),
           ),
           ProfileFieldTile(
             label: "Location",
             value: profile?.location,
             placeholder: "add details",
-            onTap: () {},
+            onTap: () => _showEditDialog(
+              context,
+              "Location",
+              "location",
+              profile?.location,
+              profileVM,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildMedicalTab(BuildContext context, PatientProfileModel? profile) {
+  Widget _buildMedicalTab(
+    BuildContext context,
+    PatientProfileModel? profile,
+    ProfileViewModel profileVM,
+  ) {
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -258,37 +338,73 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
             label: "Allergies",
             value: profile?.allergies,
             placeholder: "add allergies",
-            onTap: () {},
+            onTap: () => _showEditDialog(
+              context,
+              "Allergies",
+              "allergies",
+              profile?.allergies,
+              profileVM,
+            ),
           ),
           ProfileFieldTile(
             label: "Current Medications",
             value: profile?.currentMedications,
             placeholder: "add medications",
-            onTap: () {},
+            onTap: () => _showEditDialog(
+              context,
+              "Current Medications",
+              "currentMedications",
+              profile?.currentMedications,
+              profileVM,
+            ),
           ),
           ProfileFieldTile(
             label: "Past Medications",
             value: profile?.pastMedications,
             placeholder: "add medications",
-            onTap: () {},
+            onTap: () => _showEditDialog(
+              context,
+              "Past Medications",
+              "pastMedications",
+              profile?.pastMedications,
+              profileVM,
+            ),
           ),
           ProfileFieldTile(
             label: "Chronic Diseases",
             value: profile?.chronicDiseases,
             placeholder: "add disease",
-            onTap: () {},
+            onTap: () => _showEditDialog(
+              context,
+              "Chronic Diseases",
+              "chronicDiseases",
+              profile?.chronicDiseases,
+              profileVM,
+            ),
           ),
           ProfileFieldTile(
             label: "Injuries",
             value: profile?.injuries,
             placeholder: "add incident",
-            onTap: () {},
+            onTap: () => _showEditDialog(
+              context,
+              "Injuries",
+              "injuries",
+              profile?.injuries,
+              profileVM,
+            ),
           ),
           ProfileFieldTile(
             label: "Surgeries",
             value: profile?.surgeries,
             placeholder: "add surgeries",
-            onTap: () {},
+            onTap: () => _showEditDialog(
+              context,
+              "Surgeries",
+              "surgeries",
+              profile?.surgeries,
+              profileVM,
+            ),
           ),
         ],
       ),
@@ -298,6 +414,7 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
   Widget _buildLifestyleTab(
     BuildContext context,
     PatientProfileModel? profile,
+    ProfileViewModel profileVM,
   ) {
     return SingleChildScrollView(
       child: Column(
@@ -306,34 +423,135 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
             label: "Smoking Habits",
             value: profile?.smokingHabits,
             placeholder: "add details",
-            onTap: () {},
+            onTap: () => _showEditDialog(
+              context,
+              "Smoking Habits",
+              "smokingHabits",
+              profile?.smokingHabits,
+              profileVM,
+            ),
           ),
           ProfileFieldTile(
             label: "Alcohol consumption",
             value: profile?.alcoholConsumption,
             placeholder: "add details",
-            onTap: () {},
+            onTap: () => _showEditDialog(
+              context,
+              "Alcohol Consumption",
+              "alcoholConsumption",
+              profile?.alcoholConsumption,
+              profileVM,
+            ),
           ),
           ProfileFieldTile(
             label: "Activity level",
             value: profile?.activityLevel,
             placeholder: "add details",
-            onTap: () {},
+            onTap: () => _showEditDialog(
+              context,
+              "Activity Level",
+              "activityLevel",
+              profile?.activityLevel,
+              profileVM,
+            ),
           ),
           ProfileFieldTile(
             label: "Food Preference",
             value: profile?.foodPreference,
             placeholder: "add lifestyle",
-            onTap: () {},
+            onTap: () => _showEditDialog(
+              context,
+              "Food Preference",
+              "foodPreference",
+              profile?.foodPreference,
+              profileVM,
+            ),
           ),
           ProfileFieldTile(
             label: "Occupation",
             value: profile?.occupation,
             placeholder: "add occupation",
-            onTap: () {},
+            onTap: () => _showEditDialog(
+              context,
+              "Occupation",
+              "occupation",
+              profile?.occupation,
+              profileVM,
+            ),
           ),
         ],
       ),
     );
+  }
+
+  // --- Helpers ---
+
+  Future<void> _showEditDialog(
+    BuildContext context,
+    String label,
+    String fieldKey,
+    String? currentValue,
+    ProfileViewModel profileVM,
+  ) async {
+    final TextEditingController controller = TextEditingController(
+      text: currentValue,
+    );
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Edit $label"),
+          content: TextField(
+            controller: controller,
+            decoration: InputDecoration(
+              hintText: "Enter $label",
+              border: const OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                profileVM.updateProfileField(fieldKey, controller.text);
+                Navigator.pop(context);
+              },
+              child: const Text("Save"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _selectDate(
+    BuildContext context,
+    String fieldKey,
+    String? currentDate,
+    ProfileViewModel profileVM,
+  ) async {
+    DateTime initialDate = DateTime.now();
+    if (currentDate != null && currentDate.isNotEmpty) {
+      try {
+        initialDate = DateTime.parse(currentDate);
+      } catch (_) {}
+    }
+
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+
+    if (picked != null) {
+      // Format as yyyy-MM-dd
+      String formattedDate =
+          "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
+      profileVM.updateProfileField(fieldKey, formattedDate);
+    }
   }
 }

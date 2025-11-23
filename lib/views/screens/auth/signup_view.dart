@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/themes/app_colors.dart';
 import '../../../view_models/auth_view_model.dart';
+import 'package:helthcare/views/screens/patient_home_screen.dart';
+import 'package:helthcare/views/screens/doctor_dashboard_screen.dart';
 
 class SignUpView extends StatefulWidget {
   const SignUpView({super.key});
@@ -48,8 +50,21 @@ class _SignUpViewState extends State<SignUpView> {
               backgroundColor: AppColors.secondaryGreen,
             ),
           );
-          // Pop back to login, or you can navigate to Home directly
-          Navigator.pop(context);
+
+          // Navigate to appropriate screen based on role
+          if (authVM.userRole == 'doctor') {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (_) => const DoctorDashboardScreen()),
+              (route) => false,
+            );
+          } else {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (_) => const PatientHomeScreen()),
+              (route) => false,
+            );
+          }
         } else {
           // Error
           ScaffoldMessenger.of(context).showSnackBar(
