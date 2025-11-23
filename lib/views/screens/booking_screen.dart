@@ -5,16 +5,30 @@ import '../../core/themes/app_colors.dart';
 import '../../view_models/booking_view_model.dart';
 import '../../data/models/doctor_model.dart';
 
-class BookingScreen extends StatefulWidget {
+class BookingScreen extends StatelessWidget {
   final DoctorModel doctor;
 
   const BookingScreen({super.key, required this.doctor});
 
   @override
-  State<BookingScreen> createState() => _BookingScreenState();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (_) => BookingViewModel(doctorId: doctor.uid),
+      child: _BookingScreenContent(doctor: doctor),
+    );
+  }
 }
 
-class _BookingScreenState extends State<BookingScreen> {
+class _BookingScreenContent extends StatefulWidget {
+  final DoctorModel doctor;
+
+  const _BookingScreenContent({required this.doctor});
+
+  @override
+  State<_BookingScreenContent> createState() => _BookingScreenContentState();
+}
+
+class _BookingScreenContentState extends State<_BookingScreenContent> {
   @override
   void initState() {
     super.initState();
@@ -181,8 +195,20 @@ class _BookingScreenState extends State<BookingScreen> {
                               ),
                             )
                           : vm.availableSlots.isEmpty
-                          ? const Center(
-                              child: Text("No slots available for this date"),
+                          ? Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Text(
+                                  vm.statusMessage.isNotEmpty
+                                      ? vm.statusMessage
+                                      : "No slots available for this date",
+                                  style: const TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 16,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
                             )
                           : Wrap(
                               spacing: 12,
@@ -235,15 +261,30 @@ class _BookingScreenState extends State<BookingScreen> {
                 child: ElevatedButton(
                   onPressed: vm.selectedSlot == null
                       ? null
-                      : () {
-                          // TODO: Proceed to Confirmation
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                "Booking for ${vm.getFormattedDate()} at ${vm.selectedSlot}",
-                              ),
-                            ),
+                      : () async {
+                          final success = await vm.bookAppointment(
+                            widget.doctor,
                           );
+                          if (success && context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  "Appointment booked successfully!",
+                                ),
+                                backgroundColor: AppColors.secondaryGreen,
+                              ),
+                            );
+                            Navigator.pop(
+                              context,
+                            ); // Go back to previous screen
+                          } else if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Failed to book appointment"),
+                                backgroundColor: AppColors.error,
+                              ),
+                            );
+                          }
                         },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryBlue,

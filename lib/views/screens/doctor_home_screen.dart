@@ -135,25 +135,6 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
               ],
             ),
           ),
-
-          // ==================================================
-          // 2. BODY CONTENT (Placeholder for Dashboard Widgets)
-          // ==================================================
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  // This space is ready for "Today's Appointments" or "Stats"
-                  const SizedBox(height: 20),
-                  Text(
-                    "Dashboard Modules Coming Soon",
-                    style: TextStyle(color: Colors.grey[400]),
-                  ),
-                ],
-              ),
-            ),
-          ),
         ],
       ),
     );

@@ -9,7 +9,8 @@ import 'view_models/auth_view_model.dart';
 import 'view_models/patient_profile_view_model.dart';
 import 'view_models/doctor_profile_view_model.dart';
 import 'view_models/patient_home_view_model.dart';
-import 'view_models/booking_view_model.dart';
+import 'view_models/doctor_appointments_view_model.dart';
+import 'view_models/availability_view_model.dart';
 import 'views/screens/auth/login_view.dart';
 
 void main() async {
@@ -32,7 +33,8 @@ class ZenThinkApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ProfileViewModel()),
         ChangeNotifierProvider(create: (_) => DoctorProfileViewModel()),
         ChangeNotifierProvider(create: (_) => PatientHomeViewModel()),
-        ChangeNotifierProvider(create: (_) => BookingViewModel()),
+        ChangeNotifierProvider(create: (_) => DoctorAppointmentsViewModel()),
+        ChangeNotifierProvider(create: (_) => AvailabilityViewModel()),
       ],
       child: MaterialApp(
         title: 'ZenThink Health',
