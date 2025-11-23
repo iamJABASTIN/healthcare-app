@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../core/themes/app_colors.dart';
 import '../../../view_models/auth_view_model.dart';
 import '../patient_home_screen.dart';
-import '../doctor_dashboard_screen.dart';
+import '../doctor_home_screen.dart';
 import 'signup_view.dart'; // Navigation target
 
 class LoginView extends StatefulWidget {
@@ -40,7 +40,7 @@ class _LoginViewState extends State<LoginView> {
           if (authVM.userRole == 'doctor') {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (_) => const DoctorDashboardScreen()),
+              MaterialPageRoute(builder: (_) => const DoctorHomeScreen()),
             );
           } else {
             // Default to Patient logic

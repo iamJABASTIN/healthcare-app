@@ -7,6 +7,7 @@ import 'firebase_options.dart';
 import 'core/themes/app_theme.dart';
 import 'view_models/auth_view_model.dart';
 import 'view_models/profile_view_model.dart';
+import 'view_models/doctor_profile_view_model.dart';
 import 'views/screens/auth/login_view.dart';
 
 void main() async {
@@ -27,6 +28,7 @@ class ZenThinkApp extends StatelessWidget {
 
         // This makes ProfileViewModel available to the entire app
         ChangeNotifierProvider(create: (_) => ProfileViewModel()),
+        ChangeNotifierProvider(create: (_) => DoctorProfileViewModel()),
       ],
       child: MaterialApp(
         title: 'ZenThink Health',
