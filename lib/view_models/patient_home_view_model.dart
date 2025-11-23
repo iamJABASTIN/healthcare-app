@@ -44,9 +44,9 @@ class PatientHomeViewModel extends ChangeNotifier {
   Future<void> fetchDoctors() async {
     _setLoading(true);
     try {
-      final QuerySnapshot snapshot = await _firestore
+        final QuerySnapshot snapshot = await _firestore
           .collection('doctors')
-          // .where('status', isEqualTo: 'approved') // Commented out for testing
+          .where('status', isEqualTo: 'approved')
           .get();
 
       List<DoctorModel> loadedDoctors = [];

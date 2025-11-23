@@ -4,6 +4,7 @@ import '../../../core/themes/app_colors.dart';
 import '../../../view_models/patient_profile_view_model.dart';
 import '../../../view_models/auth_view_model.dart';
 import '../auth/login_view.dart';
+import '../patient_medical_records_screen.dart';
 
 class PatientProfileScreen extends StatefulWidget {
   const PatientProfileScreen({super.key});
@@ -38,6 +39,16 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
             appBar: AppBar(
               title: Text(profileVM.userData?['name'] ?? 'User'),
               actions: [
+                IconButton(
+                  icon: const Icon(Icons.folder_shared, color: Colors.white),
+                  tooltip: 'Medical Records',
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const PatientMedicalRecordsScreen()),
+                    );
+                  },
+                ),
                 IconButton(
                   icon: const Icon(Icons.logout, color: Colors.white),
                   onPressed: () {

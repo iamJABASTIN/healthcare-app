@@ -42,6 +42,9 @@ class _LoginViewState extends State<LoginView> {
               context,
               MaterialPageRoute(builder: (_) => const DoctorNavigation()),
             );
+          } else if (authVM.userRole == 'admin') {
+            // Route admins to admin dashboard
+            Navigator.pushReplacementNamed(context, '/admin');
           } else {
             // Default to Patient logic -> route to PatientNavigation (bottom menu)
             Navigator.pushReplacement(
@@ -49,7 +52,6 @@ class _LoginViewState extends State<LoginView> {
               MaterialPageRoute(builder: (_) => const PatientNavigation()),
             );
           }
-
           // --- NEW LOGIC ENDS HERE ---
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
