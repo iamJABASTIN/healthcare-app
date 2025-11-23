@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
+
 import '../data/models/appointment_model.dart';
 import '../data/models/patient_profile_model.dart';
 
@@ -28,11 +30,6 @@ class DoctorAppointmentsViewModel extends ChangeNotifier {
 
   // Fetch all appointments (both past and upcoming)
   Future<void> fetchAppointments() async {
-    await Future.wait([fetchUpcomingAppointments(), fetchPastAppointments()]);
-  }
-
-  // Fetch upcoming appointments only
-  Future<void> fetchUpcomingAppointments() async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -42,53 +39,84 @@ class DoctorAppointmentsViewModel extends ChangeNotifier {
       if (user == null) throw Exception("User not logged in");
 
       final now = DateTime.now();
-      final appointmentsSnapshot = await FirebaseFirestore.instance
+      // buffer: treat appointments whose end time is within 10 minutes in the past as upcoming
+      final buffer = Duration(minutes: 10);
+
+      final snapshot = await FirebaseFirestore.instance
           .collection('appointments')
           .where('doctorId', isEqualTo: user.uid)
-          .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(now))
           .orderBy('date')
           .orderBy('time')
           .get();
 
-      _upcomingAppointments = await _fetchPatientDetails(appointmentsSnapshot);
+      final all = await _fetchPatientDetails(snapshot);
+
+      // Partition client-side using computed end time (default duration 30 mins)
+      final List<AppointmentWithPatientDetails> upcoming = [];
+      final List<AppointmentWithPatientDetails> past = [];
+
+      for (var item in all) {
+        final appt = item.appointment;
+
+        DateTime? startDt;
+        try {
+          startDt = _combineDateAndTime(appt.date, appt.time);
+        } catch (_) {
+          startDt = appt.date;
+        }
+
+        final duration = const Duration(minutes: 30);
+        final endDt = (startDt ?? appt.date).add(duration);
+
+        if (endDt.isAfter(now.subtract(buffer))) {
+          upcoming.add(item);
+        } else {
+          past.add(item);
+        }
+      }
+
+      // sort upcoming ascending, past descending
+      upcoming.sort((a, b) => _compareAppointmentDate(a.appointment, b.appointment));
+      past.sort((a, b) => _compareAppointmentDate(b.appointment, a.appointment));
+
+      _upcomingAppointments = upcoming;
+      _pastAppointments = past;
     } catch (e) {
-      debugPrint("Error fetching upcoming appointments: $e");
-      _errorMessage = "Failed to load upcoming appointments";
+      debugPrint("Error fetching appointments: $e");
+      _errorMessage = "Failed to load appointments";
       _upcomingAppointments = [];
-    }
-
-    _isLoading = false;
-    notifyListeners();
-  }
-
-  // Fetch past appointments only
-  Future<void> fetchPastAppointments() async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) throw Exception("User not logged in");
-
-      final now = DateTime.now();
-      final appointmentsSnapshot = await FirebaseFirestore.instance
-          .collection('appointments')
-          .where('doctorId', isEqualTo: user.uid)
-          .where('date', isLessThan: Timestamp.fromDate(now))
-          .orderBy('date', descending: true)
-          .orderBy('time', descending: true)
-          .get();
-
-      _pastAppointments = await _fetchPatientDetails(appointmentsSnapshot);
-    } catch (e) {
-      debugPrint("Error fetching past appointments: $e");
-      _errorMessage = "Failed to load past appointments";
       _pastAppointments = [];
     }
 
     _isLoading = false;
     notifyListeners();
+  }
+
+  DateTime? _combineDateAndTime(DateTime date, String timeStr) {
+    if (timeStr.isEmpty) return date;
+
+    // try formats: 'HH:mm' or 'h:mm a'
+    try {
+      final t = timeStr.trim();
+      if (t.toLowerCase().contains('am') || t.toLowerCase().contains('pm')) {
+        final parsed = DateFormat.jm().parseLoose(t);
+        return DateTime(date.year, date.month, date.day, parsed.hour, parsed.minute);
+      } else {
+        final parts = t.split(':');
+        final h = int.parse(parts[0]);
+        final m = parts.length > 1 ? int.parse(parts[1]) : 0;
+        return DateTime(date.year, date.month, date.day, h, m);
+      }
+    } catch (e) {
+      debugPrint('Error parsing time "$timeStr": $e');
+      return date;
+    }
+  }
+
+  int _compareAppointmentDate(AppointmentModel a, AppointmentModel b) {
+    final da = _combineDateAndTime(a.date, a.time) ?? a.date;
+    final db = _combineDateAndTime(b.date, b.time) ?? b.date;
+    return da.compareTo(db);
   }
 
   // Helper method to fetch patient details for appointments

@@ -113,15 +113,8 @@ class _DoctorAppointmentsScreenState extends State<DoctorAppointmentsScreen> {
 
     return RefreshIndicator(
       onRefresh: () async {
-        final vm = Provider.of<DoctorAppointmentsViewModel>(
-          context,
-          listen: false,
-        );
-        if (isUpcoming) {
-          await vm.fetchUpcomingAppointments();
-        } else {
-          await vm.fetchPastAppointments();
-        }
+        final vm = Provider.of<DoctorAppointmentsViewModel>(context, listen: false);
+        await vm.fetchAppointments();
       },
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
