@@ -4,12 +4,13 @@ import '../../core/themes/app_colors.dart';
 
 import '../../view_models/patient_profile_view_model.dart';
 import '../../view_models/patient_home_view_model.dart';
-import 'profile/patient_profile_screen.dart';
 import '../widgets/doctor_card.dart';
 import 'doctor_details_screen.dart';
 
 class PatientHomeScreen extends StatefulWidget {
-  const PatientHomeScreen({super.key});
+  final Function(int)? onTabChanged;
+
+  const PatientHomeScreen({super.key, this.onTabChanged});
 
   @override
   State<PatientHomeScreen> createState() => _PatientHomeScreenState();
@@ -86,21 +87,25 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
                     // A. PROFILE ICON (Navigates to Profile Page)
                     GestureDetector(
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const PatientProfileScreen(),
-                          ),
-                        );
+                        // Switch to Profile tab in parent PatientNavigation if available
+                        widget.onTabChanged?.call(2);
                       },
                       child: CircleAvatar(
+                        key: ValueKey(profileVM.profileImageUrl ?? ''),
                         radius: 24,
                         backgroundColor: Colors.white.withOpacity(0.2),
-                        child: const Icon(
-                          Icons.person,
-                          color: Colors.white,
-                          size: 30,
-                        ),
+                        foregroundImage: profileVM.profileImageUrl != null &&
+                                profileVM.profileImageUrl!.isNotEmpty
+                            ? NetworkImage(profileVM.profileImageUrl!)
+                            : null,
+                        child: profileVM.profileImageUrl == null ||
+                                profileVM.profileImageUrl!.isEmpty
+                            ? const Icon(
+                                Icons.person,
+                                color: Colors.white,
+                                size: 30,
+                              )
+                            : null,
                       ),
                     ),
 

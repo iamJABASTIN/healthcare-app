@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/themes/app_colors.dart';
 import '../../../view_models/auth_view_model.dart';
-import 'package:helthcare/views/screens/patient_home_screen.dart';
+import 'package:helthcare/views/screens/patient_navigation.dart';
 import 'package:helthcare/views/screens/doctor_navigation.dart';
 
 class SignUpView extends StatefulWidget {
@@ -61,7 +61,7 @@ class _SignUpViewState extends State<SignUpView> {
           } else {
             Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(builder: (_) => const PatientHomeScreen()),
+              MaterialPageRoute(builder: (_) => const PatientNavigation()),
               (route) => false,
             );
           }

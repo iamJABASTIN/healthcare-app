@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/themes/app_colors.dart';
 import '../../../view_models/auth_view_model.dart';
-import '../patient_home_screen.dart';
+import '../patient_navigation.dart';
 import '../doctor_navigation.dart';
 import 'signup_view.dart'; // Navigation target
 
@@ -43,10 +43,10 @@ class _LoginViewState extends State<LoginView> {
               MaterialPageRoute(builder: (_) => const DoctorNavigation()),
             );
           } else {
-            // Default to Patient logic
+            // Default to Patient logic -> route to PatientNavigation (bottom menu)
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (_) => const PatientHomeScreen()),
+              MaterialPageRoute(builder: (_) => const PatientNavigation()),
             );
           }
 

@@ -45,6 +45,7 @@ class ProfileViewModel extends ChangeNotifier {
   // Controllers
   // ---------------------------------------------------------------------
   final TextEditingController nameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
   final TextEditingController contactNumberController = TextEditingController();
   final TextEditingController genderController = TextEditingController();
   final TextEditingController dobController = TextEditingController();
@@ -96,6 +97,7 @@ class ProfileViewModel extends ChangeNotifier {
         // Load image from user doc initially
         _profileImageUrl = _userData?['profileImageUrl'];
         nameController.text = _userData?['name'] ?? '';
+        emailController.text = _userData?['email'] ?? '';
       }
 
       // 2. Fetch Detailed Patient Doc
@@ -392,6 +394,7 @@ class ProfileViewModel extends ChangeNotifier {
   @override
   void dispose() {
     nameController.dispose();
+    emailController.dispose();
     contactNumberController.dispose();
     genderController.dispose();
     dobController.dispose();

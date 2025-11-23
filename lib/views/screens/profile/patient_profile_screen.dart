@@ -166,21 +166,20 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
           ),
           const SizedBox(height: 24),
 
-          // Name Field (Fixed: Now Editable)
+          // Name Field (now bound to VM controller)
           TextFormField(
-            initialValue: vm.userData?['name'] ?? '',
+            controller: vm.nameController,
             decoration: const InputDecoration(
               labelText: 'Name',
               border: OutlineInputBorder(),
             ),
-            // CHANGED: Removed readOnly: true and added onChanged
             onChanged: (value) => vm.updateProfileField('name', value),
           ),
 
           const SizedBox(height: 16),
-          // Email (Keep read-only as email usually shouldn't change)
+          // Email (bound to VM emailController, read-only)
           TextFormField(
-            initialValue: vm.userData?['email'] ?? '',
+            controller: vm.emailController,
             decoration: const InputDecoration(
               labelText: 'Email',
               border: OutlineInputBorder(),
