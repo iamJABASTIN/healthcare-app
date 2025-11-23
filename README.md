@@ -32,28 +32,34 @@ This project adheres to the **MVVM (Model-View-ViewModel)** architecture to ensu
 ## 📱 Screenshots
 ### User Flow
 
-![User Screen 1](docs/screenshots/u1.png)
-![User Screen 2](docs/screenshots/u2.png)
-![User Screen 3](docs/screenshots/u3.png)
-![User Screen 4](docs/screenshots/u4.png)
-![User Screen 5](docs/screenshots/u5.png)
-![User Screen 6](docs/screenshots/u6.png)
-![User Screen 7](docs/screenshots/u7.png)
-![User Screen 8](docs/screenshots/u8.png)
-![User Screen 9](docs/screenshots/u9.png)
+<div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-items:flex-start;margin:12px 0">
+    <img src="docs/screenshots/u1.png" alt="User Screen 1" width="260" style="border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.12)" />
+    <img src="docs/screenshots/u2.png" alt="User Screen 2" width="260" style="border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.12)" />
+    <img src="docs/screenshots/u3.png" alt="User Screen 3" width="260" style="border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.12)" />
+    <img src="docs/screenshots/u4.png" alt="User Screen 4" width="260" style="border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.12)" />
+    <img src="docs/screenshots/u5.png" alt="User Screen 5" width="260" style="border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.12)" />
+    <img src="docs/screenshots/u6.png" alt="User Screen 6" width="260" style="border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.12)" />
+    <img src="docs/screenshots/u7.png" alt="User Screen 7" width="260" style="border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.12)" />
+    <img src="docs/screenshots/u8.png" alt="User Screen 8" width="260" style="border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.12)" />
+    <img src="docs/screenshots/u9.png" alt="User Screen 9" width="260" style="border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.12)" />
+</div>
 
 ### Doctor Flow
-![Doctor Screen 1](docs/screenshots/d1.png)
-![Doctor Screen 2](docs/screenshots/d2.png)
-![Doctor Screen 3](docs/screenshots/d3.png)
-![Doctor Screen 4](docs/screenshots/d4.png)
-![Doctor Screen 5](docs/screenshots/d5.png)
-![Doctor Screen 6](docs/screenshots/d6.png)
-![Doctor Screen 7](docs/screenshots/d7.png)
+<div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-items:flex-start;margin:12px 0">
+    <img src="docs/screenshots/d1.png" alt="Doctor Screen 1" width="260" style="border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.12)" />
+    <img src="docs/screenshots/d2.png" alt="Doctor Screen 2" width="260" style="border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.12)" />
+    <img src="docs/screenshots/d3.png" alt="Doctor Screen 3" width="260" style="border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.12)" />
+    <img src="docs/screenshots/d4.png" alt="Doctor Screen 4" width="260" style="border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.12)" />
+    <img src="docs/screenshots/d5.png" alt="Doctor Screen 5" width="260" style="border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.12)" />
+    <img src="docs/screenshots/d6.png" alt="Doctor Screen 6" width="260" style="border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.12)" />
+    <img src="docs/screenshots/d7.png" alt="Doctor Screen 7" width="260" style="border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.12)" />
+</div>
 
 ### Admin Flow
-![Admin Screen 1](docs/screenshots/a1.png)
-![Admin Screen 2](docs/screenshots/a2.png)
+<div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-items:flex-start;margin:12px 0">
+    <img src="docs/screenshots/a1.png" alt="Admin Screen 1" width="260" style="border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.12)" />
+    <img src="docs/screenshots/a2.png" alt="Admin Screen 2" width="260" style="border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.12)" />
+</div>
 
 ## ✨ Features
 
