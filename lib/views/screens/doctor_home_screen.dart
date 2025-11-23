@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../core/themes/app_colors.dart';
+import '../../view_models/doctor_profile_view_model.dart';
 import 'profile/doctor_profile_view.dart';
 
 class DoctorHomeScreen extends StatefulWidget {
@@ -13,6 +15,13 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
   @override
   void initState() {
     super.initState();
+    // Fetch profile when screen loads
+    Future.microtask(() {
+      Provider.of<DoctorProfileViewModel>(
+        context,
+        listen: false,
+      ).fetchProfile();
+    });
   }
 
   @override
@@ -49,39 +58,54 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                           ),
                         );
                       },
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 24,
-                            backgroundColor: Colors.white.withOpacity(0.2),
-                            child: const Icon(
-                              Icons.person,
-                              color: Colors.white,
-                              size: 30,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text(
-                                "Welcome Back,",
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 14,
-                                ),
+                      child: Consumer<DoctorProfileViewModel>(
+                        builder: (context, vm, child) {
+                          return Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 24,
+                                backgroundColor: Colors.white.withOpacity(0.2),
+                                backgroundImage:
+                                    vm.profileImageUrl != null &&
+                                        vm.profileImageUrl!.isNotEmpty
+                                    ? NetworkImage(vm.profileImageUrl!)
+                                    : null,
+                                child:
+                                    vm.profileImageUrl == null ||
+                                        vm.profileImageUrl!.isEmpty
+                                    ? const Icon(
+                                        Icons.person,
+                                        color: Colors.white,
+                                        size: 30,
+                                      )
+                                    : null,
                               ),
-                              Text(
-                                "Doctor",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              const SizedBox(width: 12),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    "Welcome Back,",
+                                    style: TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  Text(
+                                    vm.nameController.text.isNotEmpty
+                                        ? "Dr. ${vm.nameController.text}"
+                                        : "Doctor",
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
-                          ),
-                        ],
+                          );
+                        },
                       ),
                     ),
                   ],
